@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./config/dbConnect");
-
+const PostRoute = require("./routes/postRoute")
 // App initialize 
 const app = express();
 
@@ -17,5 +17,10 @@ app.use(cors());
 app.get("/",(req,res)=>{
   res.status(200).send("Express API is running")
 })
+
+
+
+app.use("/api/post",PostRoute)
+
 
 module.exports=app;
