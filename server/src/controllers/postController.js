@@ -52,7 +52,6 @@ const getAllPosts = async (req, res) => {
 // Route : http://localhost:8000/api/post/get-single-post/:id
 // Method : GET
 // Access : Public
-<<<<<<< HEAD
 const getSinglePost = async (req, res) => {
   const { id } = req.params;
   try {
@@ -60,14 +59,6 @@ const getSinglePost = async (req, res) => {
     console.log(singlePost);
     if (!singlePost) {
       return res.status(400).send("Post not founnd ");
-=======
-const getSinglePost=async(req,res)=>{
-  const {id} = req.params;
-  try{
-    const singlePost = await Post.findById(id)
-    if(!singlePost){
-      return res.status(400).send("Post not founnd ")
->>>>>>> c33e7187f1c87723c6e1bee100b61b6e362522dc
     }
     return res.status(200).send({
       success: true,
