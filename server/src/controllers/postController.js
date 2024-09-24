@@ -57,7 +57,6 @@ const getSinglePost=async(req,res)=>{
   const {id} = req.params;
   try{
     const singlePost = await Post.findById(id)
-    console.log(singlePost)
     if(!singlePost){
       return res.status(400).send("Post not founnd ")
     }
