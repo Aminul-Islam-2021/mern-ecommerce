@@ -1,72 +1,155 @@
 const Product = require(".././models/productModel");
-
-
-const createProduct=async(req,res)=>{
-  try{
-    console.log("Product crated")
-  }catch(error){
-    console.log(error),
-    res.json(400).send("Internal server error")
+const ProductFeatures = require("../utils/ProductFeatures");
+const createProduct = async (req, res) => {
+  try {
+    console.log("Product crated");
+  } catch (error) {
+    console.log(error), res.json(400).send("Internal server error");
   }
-}
+};
 
-const getAllProducts=async(req,res)=>{
-  try{
-    const allProduct=await Product.find()
-    if(!allProduct){
-      return res.status(404).send("Products not found")
-    }
-    return res.status(200).send({
-      success:true,
-      message:"All products",
-      total:allProduct.length,
-      allProduct,
-    })
-  }catch(error){
-    console.log(error),
-     res.json(400).send("Internal server error")
+const getAllProducts = async (req, res) => {
+  try {
+    const resultPerPage = 10; // Number of products per page
+
+    // Initialize ProductFeatures class with the query and query parameters
+    const productFeatures = new ProductFeatures(Product.find(), req.query)
+      .search()
+      .filter()
+      .sort()
+      .paginate(resultPerPage);
+
+    const products = await productFeatures.query; // Execute the query with the applied features
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 
-const getSingleProduct=async(req,res)=>{
-  const {id} = req.params;
-  try{
+const getCategories = async (req, res) => {
+  try {
+    const categories = await Product.distinct("category");
+    res.status(200).json({ success: true, categories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getBrands = async (req, res) => {
+  try {
+    const brands = await Product.distinct("brand");
+    res.status(200).json({ success: true, brands });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getProducts = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      sort = "",
+      category,
+      minPrice = 0,
+      maxPrice = Infinity,
+      rating = 0,
+      brands = [],
+    } = req.query;
+
+    // Construct filter query based on search, price range, category, rating, and brands
+    const filterQuery = {
+      ...(search && { name: { $regex: search, $options: "i" } }),
+      ...(category && { category }),
+      price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
+      rating: { $gte: Number(rating) },
+      ...(brands.length && { brand: { $in: brands.split(",") } }),
+    };
+
+    // Pagination calculation
+    const skip = (page - 1) * limit;
+
+    // Sorting options
+    let sortOption = {};
+    if (sort === "priceAsc") sortOption.price = 1;
+    if (sort === "priceDesc") sortOption.price = -1;
+    if (sort === "newest") sortOption.createdAt = -1;
+    if (sort === "rating") sortOption.rating = -1;
+
+    // MongoDB Aggregation pipeline for performance
+    const products = await Product.aggregate([
+      { $match: filterQuery },
+      { $sort: sortOption },
+      { $skip: skip },
+      { $limit: Number(limit) },
+    ]);
+
+    const totalProducts = await Product.countDocuments(filterQuery);
+
+    res.status(200).json({
+      success: true,
+      totalProducts,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalProducts / limit),
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getSingleProduct = async (req, res) => {
+  const { id } = req.params;
+  try {
     const product = await Product.findById(id);
-    if(!product){
-      return res.status(404).send("Product not found")
+    if (!product) {
+      return res.status(404).send("Product not found");
     }
     return res.status(200).send({
-      success:true,
-      message:"Single product",
+      success: true,
+      message: "Single product",
       product,
-    })
-  }catch(error){
-     return 
-       res.json(400).send("Internal server error")
-     
+    });
+  } catch (error) {
+    return;
+    res.json(400).send("Internal server error");
   }
-}
+};
 
-const updateProduct=async(req,res)=>{
-  const {id} = req.params;
-  const updatedProduct={...req.body}
-  try{
-    const updateProduct=await Product.findByIdAndUpdate(id,updatedProduct,{new:true})
-    console.log(updateProduct)
-  }catch(error){
-    console.log(error),
-     res.json(400).send("Internal server error")
+const updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const updatedProduct = { ...req.body };
+  try {
+    const updateProduct = await Product.findByIdAndUpdate(id, updatedProduct, {
+      new: true,
+    });
+    console.log(updateProduct);
+  } catch (error) {
+    console.log(error), res.json(400).send("Internal server error");
   }
-}
+};
 
-
-const deleteProduct=async(req,res)=>{
-  try{
-    console.log("Product deleted")
-  }catch(error){
-    console.log(error),
-     res.json(400).send("Internal server error")
+const deleteProduct = async (req, res) => {
+  try {
+    console.log("Product deleted");
+  } catch (error) {
+    console.log(error), res.json(400).send("Internal server error");
   }
-}
+};
 
-module.exports={createProduct,getAllProducts,getSingleProduct,updateProduct,deleteProduct}
+module.exports = {
+  createProduct,
+  getProducts,
+  getCategories,
+  getBrands,
+  getAllProducts,
+  getSingleProduct,
+  updateProduct,
+  deleteProduct,
+};
