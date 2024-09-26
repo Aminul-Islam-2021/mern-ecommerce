@@ -9,7 +9,7 @@ class ProductFeatures {
       if (this.queryString.search) {
         const keyword = this.queryString.search
           ? {
-              name: {
+              title: {
                 $regex: this.queryString.search,
                 $options: 'i', // case-insensitive
               },

@@ -16,7 +16,7 @@ const categoriesEnum = [
 
 const productSchema = new mongoose.Schema(
   {
-    name: {
+    title: {
       type: String,
       required: [true, "Please enter the product name"],
       trim: true,
@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: [true, "Please enter the product price"],
-      maxLength: [8, "Price cannot exceed 8 digits"],
+      maxLength: [4, "Price cannot exceed 4 digits"],
     },
     description: {
       type: String,
@@ -72,8 +72,8 @@ const productSchema = new mongoose.Schema(
 
 // Middleware to automatically generate slug from name before saving
 productSchema.pre("save", function (next) {
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, { lower: true, strict: true });
+  if (this.isModified("title")) {
+    this.slug = slugify(this.title, { lower: true, strict: true });
   }
   next();
 });
@@ -81,3 +81,4 @@ productSchema.pre("save", function (next) {
 const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;
+
