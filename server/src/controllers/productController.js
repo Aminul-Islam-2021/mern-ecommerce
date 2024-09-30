@@ -43,24 +43,6 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const getCategories = async (req, res) => {
-  try {
-    const categories = await Product.distinct("category");
-    res.status(200).json({ success: true, categories });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-const getBrands = async (req, res) => {
-  try {
-    const brands = await Product.distinct("brand");
-    res.status(200).json({ success: true, brands });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
 const getProducts = async (req, res) => {
   try {
     const {
@@ -158,8 +140,6 @@ const deleteProduct = async (req, res) => {
 module.exports = {
   createProduct,
   getProducts,
-  getCategories,
-  getBrands,
   getAllProducts,
   getSingleProduct,
   updateProduct,
