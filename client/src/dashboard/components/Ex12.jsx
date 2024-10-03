@@ -1,6 +1,6 @@
 // ProductForm.js
 import React, { useState } from 'react';
-import ImageForm from './ImageForm';
+import ImageForm from './Ex10';
 
 const ProductForm = () => {
   const [showModal, setShowModal] = useState(false);
