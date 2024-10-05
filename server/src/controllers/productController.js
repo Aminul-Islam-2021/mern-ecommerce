@@ -1,24 +1,30 @@
 const Product = require(".././models/productModel");
+const { uploadMultipleImages } = require("../helpers/imageHandler");
 const ProductFeatures = require("../utils/ProductFeatures");
 
-
-// 
+//
 // Route: http://localhost:8000/api/product/create-product
 // Method: POST
 // Access: Private (Admin)
 const createProduct = async (req, res) => {
-  try {const product = new Product(req.body);
+  try {
+    const savedImg = await uploadMultipleImages(req.files);
+    const product = new Product({ ...req.body, images: savedImg });
     await product.save();
     res.status(201).json({
       success: true,
       data: product,
     });
-    
   } catch (error) {
-    console.log(error), res.json(400).send("Internal server error");
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Product creation failed",
+        error: error.message,
+      });
   }
 };
-
 
 const getAllProducts = async (req, res) => {
   try {
@@ -83,7 +89,7 @@ const getProducts = async (req, res) => {
       { $skip: skip },
       { $limit: Number(limit) },
     ]);
- 
+
     const totalProducts = await Product.countDocuments(filterQuery);
 
     res.status(200).json({
