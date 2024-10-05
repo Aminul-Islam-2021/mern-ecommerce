@@ -1,7 +1,9 @@
 const Product = require(".././models/productModel");
 const { uploadMultipleImages } = require("../helpers/imageHandler");
 const ProductFeatures = require("../utils/ProductFeatures");
+const asyncHandler = require("express-async-handler");
 
+<<<<<<< HEAD
 //
 // Route: http://localhost:8000/api/product/create-product
 // Method: POST
@@ -25,6 +27,19 @@ const createProduct = async (req, res) => {
       });
   }
 };
+=======
+
+// Create a new product with single or multiple images
+// Route: http://localhost:8000/api/product/create-product
+// Method: POST
+// Access: Private (Admin)
+const createProduct = asyncHandler(async (req, res) => {
+ try {
+  
+  } catch (error) {
+    
+  }})
+>>>>>>> c31e46c (changes in server)
 
 const getAllProducts = async (req, res) => {
   try {
@@ -122,26 +137,75 @@ const getSingleProduct = async (req, res) => {
   }
 };
 
-const updateProduct = async (req, res) => {
-  const { id } = req.params;
-  const updatedProduct = { ...req.body };
-  try {
-    const updateProduct = await Product.findByIdAndUpdate(id, updatedProduct, {
-      new: true,
-    });
-    console.log(updateProduct);
-  } catch (error) {
-    console.log(error), res.json(400).send("Internal server error");
-  }
-};
 
-const deleteProduct = async (req, res) => {
+// Update an existing product with single or multiple images
+const updateProduct = asyncHandler(async (req, res) => {
   try {
-    console.log("Product deleted");
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // If new multiple images are uploaded
+    if (req.files && req.files.length > 0) {
+      // Delete existing images from Cloudinary
+      if (product.images && product.images.length > 0) {
+        const deletePromises = product.images.map(image => deleteImage(image.public_id));
+        await Promise.all(deletePromises);
+      }
+
+      const result = await uploadMultipleImages(req.files);
+      product.images = result.map((img) => ({
+        public_id: img.public_id,
+        secure_url: img.secure_url
+      }));
+    }
+
+    // If new single image is uploaded
+    if (req.file) {
+      const result = await uploadSingleImage(req.file.path);
+      product.image = {
+        public_id: result.public_id,
+        secure_url: result.secure_url
+      };
+    }
+
+    await product.save();
+    res.status(200).json({ success: true, product });
   } catch (error) {
-    console.log(error), res.json(400).send("Internal server error");
+    res.status(500).json({ success: false, message: 'Product update failed', error: error.message });
   }
-};
+})
+
+// Delete a product and its images
+const deleteProduct = (async (req, res) =>  {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Delete single image from Cloudinary
+    if (product.image) {
+      await deleteImage(product.image.public_id);
+    }
+
+    // Delete multiple images from Cloudinary
+    if (product.images && product.images.length > 0) {
+      const deletePromises = product.images.map(image => deleteImage(image.public_id));
+      await Promise.all(deletePromises);
+    }
+
+    await product.remove();
+    res.status(200).json({ success: true, message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Product deletion failed', error: error.message });
+  }
+});
 
 module.exports = {
   createProduct,
