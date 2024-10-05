@@ -3,7 +3,6 @@ const { uploadMultipleImages } = require("../helpers/imageHandler");
 const ProductFeatures = require("../utils/ProductFeatures");
 const asyncHandler = require("express-async-handler");
 
-<<<<<<< HEAD
 //
 // Route: http://localhost:8000/api/product/create-product
 // Method: POST
@@ -27,19 +26,9 @@ const createProduct = async (req, res) => {
       });
   }
 };
-=======
 
-// Create a new product with single or multiple images
-// Route: http://localhost:8000/api/product/create-product
-// Method: POST
-// Access: Private (Admin)
-const createProduct = asyncHandler(async (req, res) => {
- try {
-  
-  } catch (error) {
-    
-  }})
->>>>>>> c31e46c (changes in server)
+
+
 
 const getAllProducts = async (req, res) => {
   try {
