@@ -1,7 +1,6 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const fs = require('fs');
 
 
 /// Ensure 'uploads/' folder exists
