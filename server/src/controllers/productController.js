@@ -46,6 +46,9 @@ const createProduct = asyncHandler(async (req, res) => {
   }
 });
 
+
+
+
 const getAllProducts = async (req, res) => {
   try {
     const resultPerPage = 10; // Number of products per page

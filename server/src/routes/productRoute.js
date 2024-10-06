@@ -9,8 +9,11 @@ const {
 } = require(".././controllers/productController");
 const { uploadMultiple } = require("../config/multer");
 
+
+
 // Products Routes
 router.post("/create-product", uploadMultiple, createProduct);
+router.post("/create-product",createProduct);
 router.get("/all-products", getAllProducts);
 router.get("/single-product/:id", getSingleProduct);
 router.put("/update-product/:id",uploadMultiple, updateProduct);
