@@ -1,28 +1,29 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const dbConnect = require("./config/dbConnect");
 const PostRoute = require("./routes/postRoute");
 const ProductRoute = require("./routes/productRoute");
 
-// App initialize 
+// App initialize
 const app = express();
 
 // Invoke and call database
-dbConnect()
+dbConnect();
 
-// Basic middlewares 
+// Basic middlewares
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-app.get("/",(req,res)=>{
-  res.status(200).send("Express API is")
-})
+app.get("/", (req, res) => {
+  res.status(200).send("Express API is");
+});
 
+app.use("/api/post", PostRoute);
 
+app.use("/api/product", ProductRoute);
 
-app.use("/api/post",PostRoute)
-
-app.use("/api/product",ProductRoute);
-
-module.exports=app;
+module.exports = app;

@@ -1,30 +1,50 @@
 const Product = require(".././models/productModel");
-const { uploadMultipleImages } = require("../helpers/imageHandler");
+const asyncHandler = require("express-async-handler");
+const {
+  uploadMultipleImages,
+  deleteMultipleImages,
+  deleteImagesFromCloudinary,
+} = require("../helpers/imageHandler");
 const ProductFeatures = require("../utils/ProductFeatures");
+const { cleanUpFiles } = require("../config/multer");
 
 //
 // Route: http://localhost:8000/api/product/create-product
 // Method: POST
 // Access: Private (Admin)
-const createProduct = async (req, res) => {
+const createProduct = asyncHandler(async (req, res) => {
+  const files = req.files;
+  const { title, brand, category, description, price, stock } = req.body;
   try {
-    const savedImg = await uploadMultipleImages(req.files);
-    const product = new Product({ ...req.body, images: savedImg });
-    await product.save();
-    res.status(201).json({
+    if (!title || !brand || !category || !description || !price || !stock) {
+      return res.json("Please fill all the fields");
+    }
+    const savedImg = await uploadMultipleImages(files);
+    const newProduct = await Product.create({
+      ...req.body,
+      images: savedImg,
+    });
+    if (!newProduct) {
+      return res.status(404).send({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+    return res.status(201).send({
       success: true,
-      data: product,
+      message: "Product created successfully",
+      newProduct,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Product creation failed",
-        error: error.message,
-      });
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  } finally {
+    cleanUpFiles(req.files);
   }
-};
+});
 
 const getAllProducts = async (req, res) => {
   try {
@@ -122,26 +142,102 @@ const getSingleProduct = async (req, res) => {
   }
 };
 
-const updateProduct = async (req, res) => {
+const updateProducts = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const updatedProduct = { ...req.body };
+  const newData = { ...req.body };
   try {
-    const updateProduct = await Product.findByIdAndUpdate(id, updatedProduct, {
-      new: true,
-    });
-    console.log(updateProduct);
+    console.log(id);
+    console.log(newData);
   } catch (error) {
-    console.log(error), res.json(400).send("Internal server error");
+    console.log(error);
   }
-};
+});
 
-const deleteProduct = async (req, res) => {
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const newFiles = req.files;
+  const { title, brand, category, description, price, stock } = req.body;
   try {
-    console.log("Product deleted");
+    const product = await Product.findById(id);
+    if (!product)
+      return res
+        .status(404)
+        .send({ success: false, message: "Product not found" });
+
+    // Delete associated images from Cloudinary
+    const imageIds = product.images.map((image) => image.public_id);
+    if (imageIds && imageIds.length > 0) {
+      await deleteMultipleImages(imageIds);
+    }
+
+    // Upload new images to Cloudinary
+    let newImages = [];
+    if (newFiles && newFiles.length > 0) {
+      newImages = await uploadMultipleImages(newFiles);
+    }
+
+    // Update product fields
+    if (title) product.title = title;
+    if (description) product.description = description;
+    if (price) product.price = price;
+    if (category) product.category = category;
+    if (brand) product.brand = brand;
+    if (stock) product.stock = stock;
+    product.images = newImages.length > 0 ? newImages : product.images;
+
+    await product.save();
+    return res.status(200).send({
+      success: true,
+      message: "Product updated successfully",
+      product,
+    });
   } catch (error) {
-    console.log(error), res.json(400).send("Internal server error");
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  } finally {
+    cleanUpFiles(req.files);
   }
-};
+});
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Find the product by ID
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Delete associated images from Cloudinary
+    const imageIds = product.images.map((image) => image.public_id);
+    if (imageIds && imageIds.length > 0) {
+      await deleteMultipleImages(imageIds);
+    }
+
+    // Delete the product from the database
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    if (!deletedProduct) {
+      return res.status(404).send({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      message: "Product deleted successfully",
+      deletedProduct,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+});
 
 module.exports = {
   createProduct,

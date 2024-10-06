@@ -7,8 +7,6 @@ const uploadSingleImage = async (file) => {
     const result = await cloudinary.uploader.upload(file.path, {
       folder: "Ecommerce-Images",
     });
-    // Delete the local file after upload
-    fs.unlinkSync(filePath);
     return { secure_url: result.secure_url, public_id: result.public_id };
   } catch (error) {
     console.error("Error uploading image to Cloudinary:", error);
@@ -38,9 +36,9 @@ const deleteSingleImage = async (public_id) => {
 };
 
 // function for uploading multiple images
-const deleteMultipleImages = async (public_id) => {
+const deleteMultipleImages = async (imageIds) => {
   try {
-    const deletePromises = public_id.map((public_id) =>
+    const deletePromises = imageIds.map((public_id) =>
       cloudinary.uploader.destroy(public_id)
     );
     const results = await Promise.all(deletePromises);
@@ -50,9 +48,20 @@ const deleteMultipleImages = async (public_id) => {
   }
 };
 
+
+// Function to delete images from Cloudinary
+const deleteImagesFromCloudinary = async (existingImageIds) => {
+  for (const imageId of existingImageIds) {
+    await cloudinary.uploader.destroy(imageId);
+  }
+};
+
+
+
 module.exports = {
   uploadSingleImage,
   uploadMultipleImages,
   deleteSingleImage,
   deleteMultipleImages,
+  deleteImagesFromCloudinary
 };

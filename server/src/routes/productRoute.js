@@ -13,7 +13,7 @@ const { uploadMultiple } = require("../config/multer");
 router.post("/create-product", uploadMultiple, createProduct);
 router.get("/all-products", getAllProducts);
 router.get("/single-product/:id", getSingleProduct);
-router.put("/update-product/:id", updateProduct);
+router.put("/update-product/:id",uploadMultiple, updateProduct);
 router.delete("/delete-product/:id", deleteProduct);
 
 module.exports = router;

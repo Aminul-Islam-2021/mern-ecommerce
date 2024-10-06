@@ -1,37 +1,59 @@
 const multer = require("multer");
+const fs = require("fs");
 const path = require("path");
 
-// Set storage for temporary file upload to local folder
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Local folder to temporarily store files
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
   },
 });
 
-// Set file filter to accept only images
-const fileFilter = (req, file, cb) => {
-  const fileTypes = /jpeg|jpg|png|gif/;
-  const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = fileTypes.test(file.mimetype);
+// Check file type
+function checkFileType(file, cb) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error("Images only!"));
+    cb("Error: Images Only!");
   }
-};
+}
 
+// Initialize upload
 const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB file size limit
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  },
 });
 
 const uploadSingle = upload.single("image");
 
 const uploadMultiple = upload.array("images", 5);
 
-module.exports = { uploadSingle, uploadMultiple };
+const cleanUpFiles = (files) => {
+  files.forEach((file) => {
+    fs.unlink(file.path, (err) => {
+      if (err) console.error(`Failed to delete file: ${file.path}`);
+    });
+  });
+};
+
+module.exports = { cleanUpFiles, uploadSingle, uploadMultiple };

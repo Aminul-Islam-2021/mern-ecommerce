@@ -1,0 +1,88 @@
+{
+  "method": "post",
+  "url": "http://localhost:8000/api/product/create-product",
+  "data": {
+    "title": "title4",
+    "category": "Smartphone",
+    "description": "desc",
+    "price": "200",
+    "stock": "2",
+    "brand": "brand",
+    "images": ""
+  },
+  "backup": {
+    "bodyType": "form-data",
+    "data": {
+      "title": "title4",
+      "category": "Smartphone",
+      "description": "desc",
+      "price": "200",
+      "stock": "2",
+      "brand": "brand",
+      "images": ""
+    },
+    "dataArray": [
+      [
+        "855f21e1-63db-4415-aed2-e7452b4e8593",
+        "title",
+        "title4",
+        true,
+        "STRING"
+      ],
+      [
+        "e91e0012-c5aa-43a2-af47-9821eccea65a",
+        "category",
+        "Smartphone",
+        true,
+        "STRING"
+      ],
+      [
+        "737554fb-d1b5-4e90-ba3a-eeed2ca9ce83",
+        "description",
+        "desc",
+        true,
+        "STRING"
+      ],
+      [
+        "cbbf11a3-6c57-4d16-837c-2a2d91bfdae7",
+        "price",
+        "200",
+        true,
+        "STRING"
+      ],
+      [
+        "370e1c79-62a6-43b8-8619-186909717c01",
+        "stock",
+        "2",
+        true,
+        "STRING"
+      ],
+      [
+        "cadba075-6fdf-4993-8643-a7b6a3e9011e",
+        "brand",
+        "brand",
+        true,
+        "STRING"
+      ],
+      [
+        "ea7bacec-43ff-436a-8817-fcea73250543",
+        "images",
+        "",
+        true,
+        "STRING"
+      ]
+    ]
+  },
+  "headers": {
+    "Content-Type": "multipart/form-data"
+  },
+  "headersArray": [
+    [
+      "a432c1e9-66df-4fb6-bdbf-86fb3c21be38",
+      "Content-Type",
+      "multipart/form-data",
+      true,
+      "STRING"
+    ]
+  ]
+}
