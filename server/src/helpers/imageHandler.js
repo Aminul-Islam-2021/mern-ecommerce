@@ -48,7 +48,6 @@ const deleteMultipleImages = async (imageIds) => {
   }
 };
 
-
 // Function to delete images from Cloudinary
 const deleteImagesFromCloudinary = async (existingImageIds) => {
   for (const imageId of existingImageIds) {
@@ -56,6 +55,86 @@ const deleteImagesFromCloudinary = async (existingImageIds) => {
   }
 };
 
+//
+const uploadImageToCloudinary = async (filePath, options = {}) => {
+  try {
+    const defaultOptions = {
+      folder: "uploads", // Folder in Cloudinary to store images
+      use_filename: true, // Use the original filename
+      unique_filename: false, // Do not add a random string to the filename
+      overwrite: true, // Overwrite existing images with the same name
+      resource_type: "image", // Upload as an image
+      quality: "auto:best", // Automatically adjusts the quality for the best visual quality at the smallest file size
+      format: "jpg", // Convert to JPEG format (you can also use 'webp' for modern browsers)
+      transformation: [
+        { width: 1000, height: 1000, crop: "limit" }, // Resize if the image is larger than 1000x1000
+        { fetch_format: "auto" }, // Automatically deliver the best format (webp, jpeg, etc.) based on user device
+      ],
+    };
+
+    const uploadOptions = { ...defaultOptions, ...options };
+
+    // Upload to Cloudinary with transformation
+    const result = await cloudinary.uploader.upload(filePath, uploadOptions);
+
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+      format: result.format,
+      bytes: result.bytes, // Image size in bytes
+      width: result.width,
+      height: result.height,
+    };
+  } catch (error) {
+    console.error("Error uploading image to Cloudinary:", error.message);
+    throw error;
+  }
+};
+
+
+const uploadMultipleImagesToCloudinary = async (filePaths, options = {}) => {
+  try {
+    const defaultOptions = {
+      folder: 'uploads',
+      use_filename: true,
+      unique_filename: false,
+      overwrite: true,
+      resource_type: 'image',
+      quality: 'auto:best',
+      format: 'jpg',
+      transformation: [
+        { width: 1000, height: 1000, crop: 'limit' },
+        { fetch_format: 'auto' },
+      ],
+    };
+
+    const uploadOptions = { ...defaultOptions, ...options };
+
+    // Array to store all uploaded image details
+    const uploadResults = [];
+
+    // Loop through file paths and upload each image to Cloudinary
+    for (let filePath of filePaths) {
+      const result = await cloudinary.uploader.upload(filePath, uploadOptions);
+      uploadResults.push({
+        url: result.secure_url,
+        public_id: result.public_id,
+        format: result.format,
+        bytes: result.bytes,
+        width: result.width,
+        height: result.height,
+      });
+
+      // Optional: Delete the file from the local temp directory after uploading
+      //fs.unlinkSync(filePath);
+    }
+
+    return uploadResults;
+  } catch (error) {
+    console.error('Error uploading images to Cloudinary:', error.message);
+    throw error;
+  }
+};
 
 
 module.exports = {
@@ -63,5 +142,7 @@ module.exports = {
   uploadMultipleImages,
   deleteSingleImage,
   deleteMultipleImages,
-  deleteImagesFromCloudinary
+  deleteImagesFromCloudinary,
+  uploadImageToCloudinary,
+  uploadMultipleImagesToCloudinary
 };

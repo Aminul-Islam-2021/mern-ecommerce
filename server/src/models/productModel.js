@@ -54,16 +54,10 @@ const productSchema = new mongoose.Schema(
       required: [true, "Please enter product stock"],
       maxLength: [5, "Stock cannot exceed 5 digits"],
     },
-    images: [
+    images:  [
       {
-        public_id: {
-          type: String,
-          required: true,
-        },
-        secure_url: {
-          type: String,
-          required: true,
-        },
+        url: { type: String, required: true }, // Cloudinary image URL
+        public_id: { type: String, required: true }, // Cloudinary public ID for managing the image (e.g., deleting)
       },
     ],
   },

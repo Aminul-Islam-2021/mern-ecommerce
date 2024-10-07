@@ -4,6 +4,7 @@ const {
   uploadMultipleImages,
   deleteMultipleImages,
   deleteImagesFromCloudinary,
+  uploadMultipleImagesToCloudinary,
 } = require("../helpers/imageHandler");
 const ProductFeatures = require("../utils/ProductFeatures");
 const { cleanUpFiles } = require("../config/multer");
@@ -12,7 +13,7 @@ const { cleanUpFiles } = require("../config/multer");
 // Route: http://localhost:8000/api/product/create-product
 // Method: POST
 // Access: Private (Admin)
-const createProduct = asyncHandler(async (req, res) => {
+const createProducts = asyncHandler(async (req, res) => {
   const files = req.files;
   const { title, brand, category, description, price, stock } = req.body;
   try {
@@ -46,8 +47,47 @@ const createProduct = asyncHandler(async (req, res) => {
   }
 });
 
-
-
+const createProduct = asyncHandler(async (req, res) => {
+  const files = req.files;
+  // Extract the file paths from the files array
+  const filePaths = files.map((file) => file.path);
+  const { title, brand, category, description, price, stock } = req.body;
+  try {
+    if (!title || !brand || !category || !description || !price || !stock) {
+      return res.json("Please fill all the fields");
+    }
+    const savedImg =  await uploadMultipleImagesToCloudinary(filePaths, {
+      folder: "Ecommerce-Images",
+      transformation: [
+        { width: 1500, height: 1500, crop: "limit" },
+        { fetch_format: "auto" },
+      ],
+    });
+    const newProduct = await Product.create({
+      ...req.body,
+      images: savedImg,
+    });
+    if (!newProduct) {
+      return res.status(404).send({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+    return res.status(201).send({
+      success: true,
+      message: "Product created successfully",
+      newProduct,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  } finally {
+    cleanUpFiles(req.files);
+  }
+});
 
 const getAllProducts = async (req, res) => {
   try {
