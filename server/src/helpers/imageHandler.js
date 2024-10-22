@@ -137,7 +137,41 @@ const uploadMultipleImagesToCloudinary = async (filePaths, options = {}) => {
 };
 
 
+
+
+
+// Helper function to upload a single image to Cloudinary
+const uploadToCloudinary = async (fileBuffer, filename) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(
+        {
+          folder: 'test-images', // Change to your desired folder
+          resource_type: 'image',
+          format: 'jpg', // Convert all images to JPG
+          public_id: filename.split('.')[0], // Use original filename without extension
+          transformation: { width: 500, height: 500, crop: 'limit' }, // Image transformations
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result.secure_url);
+        }
+      )
+      .end(fileBuffer);
+  });
+};
+
+
+
+
+
+
+
+
+
+
 module.exports = {
+  uploadToCloudinary,
   uploadSingleImage,
   uploadMultipleImages,
   deleteSingleImage,

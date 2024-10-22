@@ -56,7 +56,7 @@ const productSchema = new mongoose.Schema(
     },
     images:  [
       {
-        url: { type: String, required: true }, // Cloudinary image URL
+        secure_url: { type: String, required: true }, // Cloudinary image URL
         public_id: { type: String, required: true }, // Cloudinary public ID for managing the image (e.g., deleting)
       },
     ],
@@ -75,4 +75,3 @@ productSchema.pre("save", function (next) {
 const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;
-
